@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import type { WideEvent, WideEventConfig, EnrichmentData } from "../core/types";
 import { WideEventBuilder } from "../core/WideEvent";
 import { eventStorage, enrichEvent as enrichEventCore } from "../core/context";
@@ -9,14 +7,18 @@ import { defaultShouldSample } from "../core/sampling";
 // Re-export enrichEvent for convenience
 export { enrichEvent } from "../core/context";
 
-// Type for Next.js App Router route handlers
-type RouteHandler = (
-  request: NextRequest,
-  context?: { params: Promise<Record<string, string>> },
-) => Promise<Response> | Response;
+/**
+ * Generic route handler type that works with any Next.js version.
+ * Uses the standard web Request type to avoid type conflicts between
+ * different Next.js versions in the consuming application.
+ */
+type RouteHandler<
+  TRequest extends Request = Request,
+  TContext = { params?: Promise<Record<string, string>> },
+> = (request: TRequest, context?: TContext) => Promise<Response> | Response;
 
 // Extended request type with wide event
-export interface WideEventRequest extends NextRequest {
+export interface WideEventRequest extends Request {
   wideEvent: WideEvent;
 }
 
@@ -46,8 +48,11 @@ export function initLogger(config: WideEventConfig): void {
  * })
  * ```
  */
-export function withWideEvents(handler: RouteHandler): RouteHandler {
-  return async (request: NextRequest, context) => {
+export function withWideEvents<
+  TRequest extends Request = Request,
+  TContext = { params?: Promise<Record<string, string>> },
+>(handler: RouteHandler<TRequest, TContext>): RouteHandler<TRequest, TContext> {
+  return async (request: TRequest, context?: TContext) => {
     if (!globalConfig) {
       console.warn(
         "[@sas/logger] Logger not initialized. Call initLogger() first.",
@@ -110,9 +115,11 @@ export function withWideEvents(handler: RouteHandler): RouteHandler {
  * })
  * ```
  */
-export function compose(
-  ...wrappers: Array<(handler: RouteHandler) => RouteHandler>
-): (handler: RouteHandler) => RouteHandler {
+export function compose<TRequest extends Request = Request>(
+  ...wrappers: Array<
+    (handler: RouteHandler<TRequest>) => RouteHandler<TRequest>
+  >
+): (handler: RouteHandler<TRequest>) => RouteHandler<TRequest> {
   return (handler) => wrappers.reduceRight((h, wrapper) => wrapper(h), handler);
 }
 
@@ -129,10 +136,10 @@ export function compose(
  * })
  * ```
  */
-export function createHandler(
+export function createHandler<TRequest extends Request = Request>(
   enrichment: EnrichmentData,
-  handler: RouteHandler,
-): RouteHandler {
+  handler: RouteHandler<TRequest>,
+): RouteHandler<TRequest> {
   return withWideEvents(async (request, context) => {
     enrichEventCore(enrichment);
     return handler(request, context);
