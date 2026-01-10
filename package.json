@@ -1,0 +1,66 @@
+{
+  "name": "@sas/logger",
+  "version": "0.1.0",
+  "description": "Wide events logging for SAS applications - structured logging with Axiom",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./next": {
+      "types": "./dist/middleware/next.d.ts",
+      "import": "./dist/middleware/next.mjs",
+      "require": "./dist/middleware/next.js"
+    },
+    "./express": {
+      "types": "./dist/middleware/express.d.ts",
+      "import": "./dist/middleware/express.mjs",
+      "require": "./dist/middleware/express.js"
+    },
+    "./vercel": {
+      "types": "./dist/middleware/vercel.d.ts",
+      "import": "./dist/middleware/vercel.mjs",
+      "require": "./dist/middleware/vercel.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "logging",
+    "observability",
+    "axiom",
+    "wide-events",
+    "structured-logging"
+  ],
+  "author": "Sales Automation Systems",
+  "license": "MIT",
+  "peerDependencies": {
+    "next": ">=14.0.0",
+    "next-axiom": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    },
+    "next-axiom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "@vercel/node": "^3.0.0",
+    "next": "^15.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0"
+  }
+}
