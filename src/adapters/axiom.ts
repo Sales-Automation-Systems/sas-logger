@@ -14,7 +14,13 @@ export class AxiomAdapter {
 
   constructor(config: WideEventConfig) {
     this.dataset = config.dataset || process.env.AXIOM_DATASET || "production";
-    this.token = config.token || process.env.AXIOM_TOKEN || "";
+    // Support multiple token env var names (Vercel integration uses custom names)
+    this.token =
+      config.token ||
+      process.env.AXIOM_TOKEN ||
+      process.env.AXIOM_INTERNAL_TOOLS_PREVIEW ||
+      process.env.AXIOM_INTERNAL_TOOLS_PROD ||
+      "";
     this.debug = config.debug || false;
 
     if (!this.token && process.env.NODE_ENV === "production") {
