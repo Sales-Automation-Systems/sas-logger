@@ -301,13 +301,26 @@ var globalConfig = null;
 function initLogger(config) {
   globalConfig = config;
   adapter = initAxiomAdapter(config);
+  console.log("[@sas/logger] Logger initialized", {
+    serviceName: config.serviceName,
+    environment: config.environment,
+    hasToken: !!(config.token || process.env.AXIOM_TOKEN)
+  });
+}
+function ensureInitialized() {
+  if (!globalConfig) {
+    console.log("[@sas/logger] Auto-initializing with defaults");
+    initLogger({
+      serviceName: process.env.VERCEL_PROJECT_PRODUCTION_URL || "unknown",
+      environment: process.env.VERCEL_ENV || process.env.NODE_ENV || "unknown"
+    });
+  }
 }
 function withWideEvents(handler) {
   return async (request, context) => {
-    if (!globalConfig) {
-      console.warn(
-        "[@sas/logger] Logger not initialized. Call initLogger() first."
-      );
+    ensureInitialized();
+    if (!globalConfig || !adapter) {
+      console.error("[@sas/logger] Failed to initialize logger");
       return handler(request, context);
     }
     const builder = new WideEventBuilder(globalConfig);

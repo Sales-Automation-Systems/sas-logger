@@ -32,6 +32,25 @@ let globalConfig: WideEventConfig | null = null;
 export function initLogger(config: WideEventConfig): void {
   globalConfig = config;
   adapter = initAxiomAdapter(config);
+  console.log("[@sas/logger] Logger initialized", {
+    serviceName: config.serviceName,
+    environment: config.environment,
+    hasToken: !!(config.token || process.env.AXIOM_TOKEN),
+  });
+}
+
+/**
+ * Auto-initialize with defaults if not already initialized.
+ * This ensures logging works even if instrumentation.ts doesn't run.
+ */
+function ensureInitialized(): void {
+  if (!globalConfig) {
+    console.log("[@sas/logger] Auto-initializing with defaults");
+    initLogger({
+      serviceName: process.env.VERCEL_PROJECT_PRODUCTION_URL || "unknown",
+      environment: process.env.VERCEL_ENV || process.env.NODE_ENV || "unknown",
+    });
+  }
 }
 
 /**
@@ -53,10 +72,11 @@ export function withWideEvents<
   TContext = { params?: Promise<Record<string, string>> },
 >(handler: RouteHandler<TRequest, TContext>): RouteHandler<TRequest, TContext> {
   return async (request: TRequest, context?: TContext) => {
-    if (!globalConfig) {
-      console.warn(
-        "[@sas/logger] Logger not initialized. Call initLogger() first.",
-      );
+    // Auto-initialize if not already done
+    ensureInitialized();
+
+    if (!globalConfig || !adapter) {
+      console.error("[@sas/logger] Failed to initialize logger");
       return handler(request, context);
     }
 
