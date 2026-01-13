@@ -185,7 +185,7 @@ var AxiomAdapter = class {
     this.pendingEvents = [];
     this.flushTimeout = null;
     this.dataset = config.dataset || process.env.AXIOM_DATASET || "production";
-    this.token = config.token || process.env.AXIOM_TOKEN || "";
+    this.token = config.token || process.env.AXIOM_TOKEN || process.env.AXIOM_INTERNAL_TOOLS_PREVIEW || process.env.AXIOM_INTERNAL_TOOLS_PROD || "";
     this.debug = config.debug || false;
     if (!this.token && process.env.NODE_ENV === "production") {
       console.warn(
